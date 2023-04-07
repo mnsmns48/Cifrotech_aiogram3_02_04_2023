@@ -5,6 +5,7 @@ from environs import Env
 @dataclass
 class MiscPath:
     photo: str
+    yadisk: str
 
 
 @dataclass
@@ -43,6 +44,7 @@ def load_config(path: str = None):
         ),
         misc_path=MiscPath(
             photo=env.str("PHOTO_PATH"),
+            yadisk=env.str("YATOKEN"),
         ),
     )
 

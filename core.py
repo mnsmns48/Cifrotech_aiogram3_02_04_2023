@@ -11,6 +11,13 @@ def date_out(date):
     return out_date
 
 
+def ya_time_converter(time):
+    a = time
+    tz = pytz.timezone("Etc/GMT-3")
+    date = tz.normalize(a.astimezone(tz))
+    return date.date().strftime("%d %m %Y"), str(date.hour) + ' ' + str(date.minute)
+
+
 days = ({0: "Понедельник"},
         {1: "Вторник"},
         {2: "Среда"},
