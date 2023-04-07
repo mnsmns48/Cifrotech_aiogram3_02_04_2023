@@ -24,6 +24,7 @@ from keyboards.user import user_first_kb, \
     catalog_order_kb
 
 from config import hidden_vars
+from core import samsung_xlsx_list, xiaomi_xlsx_list, apple_txt_list
 
 
 async def smart_goods(m: Message):
@@ -76,7 +77,8 @@ async def catalog_all(m: Message):
 
 
 async def catalog_phones(m: Message):
-    await m.answer(text='Выбери производителя или в конце списка есть перечень всех моделей', reply_markup=catalog_brand_phones_kb)
+    await m.answer(text='Выбери производителя или в конце списка есть перечень всех моделей',
+                   reply_markup=catalog_brand_phones_kb)
 
 
 async def redmi_phones(m: Message):
@@ -125,9 +127,9 @@ async def items_order(m: Message):
 
 
 async def apple_order(m: Message):
-    await m.answer(f'Цены обновлены {actual_date()[0]} и будут актуальны 1-3 дня')
+    await m.answer(f'Цены обновлены {apple_txt_list[1]} и будут актуальны 1-3 дня')
     text = list()
-    result = text_file_order_list('Shippers/apple.txt')
+    result = text_file_order_list('Shippers/apple/' + str(apple_txt_list[0]))
     for k, v in result.items():
         text.append((str(k) + ' - ' + str(v)))
     line = '↓ ↓ ↓ ↓ \n\n' + '\n'.join(text)
@@ -143,8 +145,8 @@ async def apple_order(m: Message):
 
 
 async def xiaomi_order(m: Message):
-    await m.answer(f'Цены обновлены {actual_date()[1]} и будут актуальны 1-3 дня')
-    result = excel_order_list('Shippers/xiaomi.xlsx', xiaomi_del_list)
+    await m.answer(f'Цены обновлены {xiaomi_xlsx_list[1]}\nи будут актуальны 1-3 дня')
+    result = excel_order_list(xiaomi_xlsx_list[0], xiaomi_del_list)
     mess = '↓ ↓ ↓ ↓ \n\n' + ''.join(str(item) + '\n' for item in result)
     if len(mess) > 4096:
         for i in range(0, len(mess), 4096):
@@ -158,8 +160,8 @@ async def xiaomi_order(m: Message):
 
 
 async def samsung_order(m: Message):
-    await m.answer(f'Цены обновлены {actual_date()[2]} и будут актуальны 1-3 дня')
-    result = excel_order_list('Shippers/samsung.xlsx', samsung_del_list)
+    await m.answer(f'Цены обновлены {samsung_xlsx_list[1]}\nи будут актуальны 1-3 дня')
+    result = excel_order_list(samsung_xlsx_list[0], samsung_del_list)
     mess = '↓ ↓ ↓ ↓ \n\n' + ''.join(str(item) + '\n' for item in result)
     if len(mess) > 4096:
         for i in range(0, len(mess), 4096):

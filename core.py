@@ -1,6 +1,16 @@
+import os
 from datetime import datetime
+
+import requests
+import yadisk
 from openpyxl.reader.excel import load_workbook
 import pytz
+
+from config import hidden_vars
+
+samsung_xlsx_list = list()
+xiaomi_xlsx_list = list()
+apple_txt_list = list()
 
 
 def date_out(date):
@@ -15,7 +25,7 @@ def ya_time_converter(time):
     a = time
     tz = pytz.timezone("Etc/GMT-3")
     date = tz.normalize(a.astimezone(tz))
-    return date.date().strftime("%d %m %Y"), str(date.hour) + ' ' + str(date.minute)
+    return date.date().strftime("%d %m %Y")
 
 
 days = ({0: "Понедельник"},
@@ -71,11 +81,11 @@ def text_file_order_list(price_file):
     return apple_ord
 
 
-def excel_order_list(price_file, del_list):
+def excel_order_list(file_list, del_list):
     order_price = int()
     price_list = list()
     xiaomi_ord = dict()
-    wb = load_workbook(price_file)
+    wb = load_workbook('shippers/' + str(file_list))
     ws = wb["Лист1"]
     rows = ws.max_row
     cols = ws.max_column - 1
@@ -116,3 +126,45 @@ def actual_date():
     for i in actual:
         result.append(i.replace('\n', ' ').rstrip()[-10:])
     return result
+
+
+def update_shippers_data():
+    files_dict = dict()
+    y = yadisk.YaDisk(token=hidden_vars.misc_path.yadisk)
+    for i in list(y.listdir('shippers/apple')):
+        apple_txt_list.append(i['name'])
+        apple_txt_list.append(ya_time_converter(i['modified']))
+        apple_txt_list.append(i['file'])
+    if os.path.isfile('shippers/apple/' + str(apple_txt_list[0])):
+        pass
+    else:
+        download_txt = requests.get(apple_txt_list[2])
+        with open('shippers/apple/' + str(apple_txt_list[0]), 'wb') as f:
+            f.write(download_txt.content)
+        f.close()
+    for i in list(y.listdir('shippers')):
+        files_dict[i['name']] = [ya_time_converter(i['modified']), i['file']]
+    for i in list(files_dict.keys()):
+        if 'sams' in i:
+            samsung_xlsx_list.append(i)
+            samsung_xlsx_list.append(files_dict.get(i)[0])
+            samsung_xlsx_list.append(files_dict.get(i)[1])
+            if os.path.isfile('shippers/' + str(samsung_xlsx_list[0])):
+                pass
+            else:
+                download_response = requests.get(samsung_xlsx_list[2])
+                with open('shippers/' + str(samsung_xlsx_list[0]), 'wb') as f:
+                    f.write(download_response.content)
+                f.close()
+        else:
+            xiaomi_xlsx_list.append(i)
+            xiaomi_xlsx_list.append(files_dict.get(i)[0])
+            xiaomi_xlsx_list.append(files_dict.get(i)[1])
+            if os.path.isfile('shippers/' + str(xiaomi_xlsx_list[0])):
+                pass
+            else:
+                download_response = requests.get(xiaomi_xlsx_list[2])
+                with open('shippers/' + str(xiaomi_xlsx_list[0]), 'wb') as f:
+                    f.write(download_response.content)
+                f.close()
+
