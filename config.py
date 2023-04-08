@@ -16,6 +16,12 @@ class DbConfig:
 
 
 @dataclass
+class MailConnect:
+    mailbox: str
+    mail_pass: str
+
+
+@dataclass
 class TgBot:
     bot_token: str
     admin_id: list[int]
@@ -26,6 +32,7 @@ class Config:
     tg_bot: TgBot
     db: DbConfig
     misc_path: MiscPath
+    mail_connect: MailConnect
 
 
 def load_config(path: str = None):
@@ -45,6 +52,10 @@ def load_config(path: str = None):
         misc_path=MiscPath(
             photo=env.str("PHOTO_PATH"),
             yadisk=env.str("YATOKEN"),
+        ),
+        mail_connect=MailConnect(
+            mailbox=env.str("MAIL_BOX"),
+            mail_pass=env.str("MAIL_PASS"),
         ),
     )
 
