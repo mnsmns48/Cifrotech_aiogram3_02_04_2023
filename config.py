@@ -60,4 +60,4 @@ def load_config(path: str = None):
     )
 
 
-hidden_vars = load_config('.env')
+hidden_vars = load_config('..env')

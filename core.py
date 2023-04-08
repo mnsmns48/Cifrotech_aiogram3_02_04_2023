@@ -86,7 +86,7 @@ def excel_order_list(file_list, del_list):
     order_price = int()
     price_list = list()
     xiaomi_ord = dict()
-    wb = load_workbook('shippers/' + str(file_list))
+    wb = load_workbook(file_list)
     ws = wb["Лист1"]
     rows = ws.max_row
     cols = ws.max_column - 1
