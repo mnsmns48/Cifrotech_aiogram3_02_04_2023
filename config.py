@@ -19,6 +19,8 @@ class DbConfig:
 class MailConnect:
     mailbox: str
     mail_pass: str
+    mail_path: str
+    subject_keywords: str
 
 
 @dataclass
@@ -56,6 +58,8 @@ def load_config(path: str = None):
         mail_connect=MailConnect(
             mailbox=env.str("MAIL_BOX"),
             mail_pass=env.str("MAIL_PASS"),
+            mail_path=env.str("MAIL_PATH"),
+            subject_keywords=env.str("SUBJECT_KEYWORDS"),
         ),
     )
 

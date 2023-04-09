@@ -18,7 +18,7 @@ def date_out(date):
     m_date = datetime.strptime(str(date), "%Y-%m-%d %H:%M:%S%z")
     tz = pytz.timezone("Etc/GMT-3")
     m_date_utc3 = tz.normalize(m_date.astimezone(tz))
-    out_date = m_date_utc3.strftime("%d-%m-%Y %H:%M")
+    out_date = m_date_utc3.strftime("%Y-%m-%dT%H:%M")
     return out_date
 
 
@@ -54,6 +54,21 @@ xiaomi_del_list = [' EU ', ' RU ', ' RUСТБ ', 'Xiaomi ', ' JP ']
 samsung_del_list = [' KZ ', ' AE ', ' AH ', ' EU ', ' RUTH ',
                     ' Simfree ', ' KR ', ' KZEU ', ' CNINAH ',
                     'INAHMY ', ' IN ', ' KZAEZA ', ' TH ', ' RU ', ' KZAEEU ', '  ', 'Samsung Galaxy ']
+
+
+def android_profit(entry_price):
+    price_range = [(0, 7000),
+                   (7000, 10000),
+                   (10000, 15000),
+                   (15000, 20000),
+                   (20000, 30000),
+                   (30000, 50000),
+                   (50000, 100000),
+                   (100000, 3000000)]
+    profit = [1400, 1900, 2400, 2900, 3400, 5000, 8000, 10000]
+    for i in range(len(profit) - 1):
+        if entry_price in range(*price_range[i]):
+            return entry_price + profit[i]
 
 
 def text_file_order_list(price_file):
@@ -131,7 +146,7 @@ def actual_date():
 
 # def update_shippers_data():
 #     files_dict = dict()
-#     y = yadisk.YaDisk(token=hidden_vars.misc_path.yadisk)
+#
 #     for i in list(y.listdir('shippers/apple')):
 #         apple_txt_list.append(i['name'])
 #         apple_txt_list.append(ya_time_converter(i['modified']))
@@ -168,9 +183,6 @@ def actual_date():
 #                 with open('shippers/' + str(xiaomi_xlsx_list[0]), 'wb') as f:
 #                     f.write(download_response.content)
 #                 f.close()
-
-
-
 
 
 def update_price_list_data():

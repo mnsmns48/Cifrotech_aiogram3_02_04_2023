@@ -1,13 +1,10 @@
-import sqlite3
-
-# from db.fdb_work import fb_dir_goods_request, cursor
-
-sqlite_connection = sqlite3.connect('db/cifrotech_db', check_same_thread=False)
+from core_vars import sqlite_connection
+from db.fdb_work import fb_dir_goods_request, cursor
 
 
-def write_user_enter(con, *args):
-    con = sqlite_connection.cursor()
-    con.execute(
+def write_user_enter(*args):
+    sqlite_cur = sqlite_connection.cursor()
+    sqlite_cur.execute(
         f"INSERT INTO USERS ("
         f"TIME, "
         f"ID, "
@@ -16,15 +13,15 @@ def write_user_enter(con, *args):
         f"USERNAME, "
         f"MESSAGE_ID, "
         f"TEXT) VALUES (?, ?, ?, ?, ?, ?, ?)", args)
-    con.commit()
+    sqlite_cur.commit()
 
 
-def read_product(con, **kwargs):
-    con = sqlite_connection.cursor()
-    con.execute(
+def read_product(**kwargs):
+    sqlite_cur = sqlite_connection.cursor()
+    sqlite_cur.execute(
         "SELECT {name} FROM PRODUCT_DESC WHERE {code} = {product_code}".format(**kwargs)
     )
-    result = con.fetchone()
+    result = sqlite_cur.fetchone()
     try:
         return result
     except TypeError:
@@ -39,29 +36,43 @@ def check_sqlite_db(product_code):
         return None
 
 
-# def take_caption_sqlite(product_code):
-#     result = check_sqlite_db(product_code)
-#     price = fb_dir_goods_request(cur=cursor, column='PRICE_', code=product_code)
-#     if result:
-#         line = read_product(name='NAME, DESCRIPT', code='CODE', product_code=product_code)
-#         descr = '' if line[1] is None else line[1]
-#         caption = f"Цена {int(price[0][0])} руб.\n{line[0]}\n\n{descr}"
-#         return caption
-#     else:
-#         line = fb_dir_goods_request(cur=cursor, column='NAME, PRICE_', code=product_code)
-#         caption = f"{int(line[0][1])} руб.\n{line[0][0]}"
-#         write_photo_db(product_code, line[0][0])
-#         return caption
+def take_caption_sqlite(product_code):
+    result = check_sqlite_db(product_code)
+    price = fb_dir_goods_request(cur=cursor, column='PRICE_', code=product_code)
+    if result:
+        line = read_product(name='NAME, DESCRIPT', code='CODE', product_code=product_code)
+        descr = '' if line[1] is None else line[1]
+        caption = f"Цена {int(price[0][0])} руб.\n{line[0]}\n\n{descr}"
+        return caption
+    else:
+        line = fb_dir_goods_request(cur=cursor, column='NAME, PRICE_', code=product_code)
+        caption = f"{int(line[0][1])} руб.\n{line[0][0]}"
+        write_photo_db(product_code, line[0][0])
+        return caption
 
 
-def write_photo_db(con, code, name):
-    con.execute(f'INSERT INTO PRODUCT_DESC (CODE, NAME) VALUES ({code}, {name})')
-    con.commit()
-
-
-def write_goods_for_deliver(*args):
-    sqlite_connection = sqlite3.connect('db/cifrotech_db', check_same_thread=False)
+def write_photo_db(code, name):
     sqlite_cur = sqlite_connection.cursor()
-    sqlite_cur.execute(f"INSERT INTO OPTMOBEX (DATE_TIME, PRICE_LIST_NAME, PRODUCT, ENTRY_PRICE, OUT_PRICE) "
-                       f"VALUES (?, ?, ?, ?, ?)", args)
-    sqlite_connection.commit()
+    sqlite_cur.execute(f'INSERT INTO PRODUCT_DESC (CODE, NAME) VALUES ({code}, {name})')
+    sqlite_cur.commit()
+
+
+def show_distributor_offer(text):
+    search = str()
+    if text == 'Samsung под заказ':
+        search = 'sams.xlsx'
+    if text == 'Xiaomi под заказ':
+        search = 'к.xlsx'
+    else:
+        print('Неправильная работа скрипта')
+    sqlite_cur = sqlite_connection.cursor()
+    sqlite_cur.execute(
+        f"SELECT PRODUCT, OUT_COST FROM optmobex_dist "
+        f"WHERE PRICE_TITLE LIKE '%{search}' AND DATE = (SELECT "
+        f"max(DATE) FROM optmobex_dist WHERE PRICE_TITLE = PRICE_TITLE) "
+        f"ORDER BY OUT_COST")
+    result = sqlite_cur.fetchone()
+    try:
+        return result
+    except TypeError:
+        return None

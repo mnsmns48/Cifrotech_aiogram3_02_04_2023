@@ -1,0 +1,114 @@
+import base64
+import email
+import imaplib
+import time
+
+from openpyxl.reader.excel import load_workbook
+from email.header import decode_header
+
+from config import hidden_vars
+from core_func import date_out, android_profit
+
+from core_vars import y, sqlite_connection
+
+
+def mail_connect():
+    global con
+    con = imaplib.IMAP4_SSL("imap.mail.ru")
+    con.login(hidden_vars.mail_connect.mailbox, hidden_vars.mail_connect.mail_pass)
+    con.list()
+    con.select(hidden_vars.mail_connect.mail_path)
+    result, data_connect = con.search(None, "UNSEEN")
+    msg_list = list(data_connect[0].decode('UTF-8').replace(' ', ''))
+    if msg_list:
+        return msg_list
+
+
+def mail_processing():
+    to_be_write_into_db = list()
+    unread_msg_list = mail_connect()
+    for i in unread_msg_list:
+        result, data = con.fetch(i, "(RFC822)")
+        msg = email.message_from_bytes(data[0][1])
+        date_time_letter = date_out(email.utils.parsedate_to_datetime(msg["Date"]))
+        subject = decode_header(msg["Subject"])[0][0].decode()
+        if hidden_vars.mail_connect.subject_keywords in subject:
+            if msg.is_multipart():
+                for part in msg.walk():
+                    if part.get_content_maintype() == 'multipart' or part.get('Content-Disposition') is None:
+                        continue
+                    filename = part.get_filename()
+                    transfer_encoding = part.get_all('Content-Transfer-Encoding')
+                    if transfer_encoding and transfer_encoding[0] == 'base64':
+                        filename_parts = filename.split('?')
+                        filename = base64.b64decode(filename_parts[3]).decode(filename_parts[1])
+                        if '.xlsx' or '.xls' in filename:
+                            with open(
+                                    'shippers/' + hidden_vars.mail_connect.mail_path + '/' + filename, 'wb'
+                            ) as new_file:
+                                new_file.write(part.get_payload(decode=True))
+                            to_be_write_into_db.append([filename, date_time_letter])
+            return to_be_write_into_db
+        else:
+            print('Новые письма были, но они не подходят под условия')
+
+
+def from_xls_into_db(data_list):
+    sqlite_cur = sqlite_connection.cursor()
+    for price in range(len(data_list)):
+        sqlite_cur.execute(
+            f"SELECT PRICE_TITLE FROM optmobex_dist WHERE DATE == '{data_list[price][1]}' "
+            f"AND PRICE_TITLE == '{data_list[price][0]}' "
+            f"GROUP BY PRICE_TITLE "
+        )
+        result_checking = sqlite_cur.fetchone()
+        try:
+            if result_checking:
+                print('В БД уже есть такой прайс:', *data_list[price])
+            else:
+                print('Заношу в БД такой прайс:', *data_list[price])
+                price_list = list()
+                wb = load_workbook(
+                    'shippers/' + hidden_vars.mail_connect.mail_path + '/' + data_list[price][0]
+                )
+                ws = wb["Лист1"]
+                rows = ws.max_row
+                cols = ws.max_column - 1
+                for i in range(2, rows):
+                    string = str()
+                    for j in range(1, cols + 1):
+                        cell = ws.cell(row=i, column=j)
+                        string = string + str(cell.value) + ' '
+                    price_list.append(string.strip(' ').split(' '))
+                for k in price_list:
+                    product_name = " ".join(k[:-1])
+                    input_price = int(k[-1])
+                    out_price = android_profit(int(k[-1]))
+                    sqlite_cur.execute(f"INSERT INTO optmobex_dist VALUES "
+                                       f"('{data_list[price][1]}', "
+                                       f"'{data_list[price][0]}', "
+                                       f"'{product_name}', "
+                                       f"{input_price}, "
+                                       f"{out_price})")
+                sqlite_connection.commit()
+                print('Запись:', data_list[price][0], 'завершена')
+                y.upload("db/cifrotech_db", "/shippers/cifrotech_db", overwrite=True)
+        except TypeError as error:
+            print('Result checking:', error)
+
+
+def mail_parsing():
+    try:
+        print("Провека почты")
+        while True:
+            response_data = mail_connect()
+            if response_data:
+                into_db = mail_processing()
+                if into_db:
+                    from_xls_into_db(into_db)
+            time.sleep(10)
+    except KeyboardInterrupt:
+        print("Скрипт проверки почты остановлен")
+
+
+mail_parsing()

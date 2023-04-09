@@ -9,7 +9,7 @@ from aiogram.types import Message, CallbackQuery
 from bot import dp, bot
 from db.fdb_work import goods_list, cursor
 from db.sqlite_work import write_user_enter, take_caption_sqlite, read_product
-from core import date_out, text_file_order_list, excel_order_list, samsung_del_list, xiaomi_del_list, actual_date
+from core_func import date_out, text_file_order_list, excel_order_list, samsung_del_list, xiaomi_del_list, actual_date
 from keyboards.user import user_first_kb, \
     catalog_full_kb, \
     redmi_inline_kb, \
@@ -24,7 +24,7 @@ from keyboards.user import user_first_kb, \
     catalog_order_kb
 
 from config import hidden_vars
-from core import samsung_xlsx_list, xiaomi_xlsx_list, apple_txt_list
+from core_func import samsung_xlsx_list, xiaomi_xlsx_list, apple_txt_list
 
 
 async def smart_goods(m: Message):
