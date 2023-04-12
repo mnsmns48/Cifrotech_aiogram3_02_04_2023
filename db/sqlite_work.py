@@ -57,18 +57,19 @@ def write_photo_db(code, name):
     sqlite_cur.commit()
 
 
-def show_distributor_offer():
-    # if text == 'Samsung под заказ':
-    #     search = 'sams.xlsx'
-    # if text == 'Xiaomi под заказ':
-    #     search = 'к.xlsx'
-    # else:
-    #     print('Неправильная работа скрипта')
+def show_distributor_offer(text):
+    spreadsheet = str()
+    if text == 'Samsung под заказ':
+        spreadsheet = 'optmobex_samsung'
+    if text == 'Xiaomi под заказ':
+        spreadsheet = 'optmobex_xiaomi'
+    else:
+        print('Неправильная работа скрипта')
     sqlite_cur = sqlite_connection.cursor()
     sqlite_cur.execute(
-        f"SELECT PRODUCT, OUT_COST FROM optmobex_dist "
-        f"WHERE PRICE_TITLE = 'Заказ для клиента 06.04.2023к.xlsx' AND DATE = (SELECT MAX(DATE) FROM optmobex_dist) "
-        f"GROUP BY DATE"
+        f"SELECT PRODUCT, OUT_COST FROM {spreadsheet} "
+        f"DATE = (SELECT MAX(DATE) FROM {spreadsheet}) "
+        f"ORDER BY OUT_COST"
     )
     result = sqlite_cur.fetchall()
     try:
