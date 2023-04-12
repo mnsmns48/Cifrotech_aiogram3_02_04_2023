@@ -50,10 +50,15 @@ month = ({1: "Января"},
          {11: "Ноября"},
          {12: "Декабря"})
 
-xiaomi_del_list = [' EU ', ' RU ', ' RUСТБ ', 'Xiaomi ', ' JP ']
-samsung_del_list = [' KZ ', ' AE ', ' AH ', ' EU ', ' RUTH ',
-                    ' Simfree ', ' KR ', ' KZEU ', ' CNINAH ',
-                    'INAHMY ', ' IN ', ' KZAEZA ', ' TH ', ' RU ', ' KZAEEU ', '  ', 'Samsung Galaxy ']
+
+def title_formatting(price, name):
+    if price == 'Xiaomi под заказ':
+        del_list = ['Xiaomi ']
+    if price == 'Samsung под заказ':
+        del_list = ['Samsung Galaxy ']
+    for i in del_list:
+        name.replace(i, '')
+    return name
 
 
 def android_profit(entry_price):
@@ -143,7 +148,6 @@ def actual_date():
         result.append(i.replace('\n', ' ').rstrip()[-10:])
     return result
 
-
 # def update_shippers_data():
 #     files_dict = dict()
 #
@@ -183,7 +187,3 @@ def actual_date():
 #                 with open('shippers/' + str(xiaomi_xlsx_list[0]), 'wb') as f:
 #                     f.write(download_response.content)
 #                 f.close()
-
-
-def update_price_list_data():
-    pass

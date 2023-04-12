@@ -1,19 +1,13 @@
 from core_vars import sqlite_connection
-# from db.fdb_work import fb_dir_goods_request, cursor
+
+from db.fdb_work import fb_dir_goods_request
 
 
 def write_user_enter(*args):
     sqlite_cur = sqlite_connection.cursor()
     sqlite_cur.execute(
-        f"INSERT INTO USERS ("
-        f"TIME, "
-        f"ID, "
-        f"FIRST_NAME, "
-        f"LAST_NAME, "
-        f"USERNAME, "
-        f"MESSAGE_ID, "
-        f"TEXT) VALUES (?, ?, ?, ?, ?, ?, ?)", args)
-    sqlite_cur.commit()
+        f"INSERT INTO USERS VALUES (?, ?, ?, ?, ?, ?, ?)", args)
+    sqlite_connection.commit()
 
 
 def read_product(**kwargs):
@@ -36,25 +30,25 @@ def check_sqlite_db(product_code):
         return None
 
 
-# def take_caption_sqlite(product_code):
-#     result = check_sqlite_db(product_code)
-#     price = fb_dir_goods_request(cur=cursor, column='PRICE_', code=product_code)
-#     if result:
-#         line = read_product(name='NAME, DESCRIPT', code='CODE', product_code=product_code)
-#         descr = '' if line[1] is None else line[1]
-#         caption = f"Цена {int(price[0][0])} руб.\n{line[0]}\n\n{descr}"
-#         return caption
-#     else:
-#         line = fb_dir_goods_request(cur=cursor, column='NAME, PRICE_', code=product_code)
-#         caption = f"{int(line[0][1])} руб.\n{line[0][0]}"
-#         write_photo_db(product_code, line[0][0])
-#         return caption
+def take_caption_sqlite(product_code):
+    result = check_sqlite_db(product_code)
+    price = fb_dir_goods_request(column='PRICE_', code=product_code)
+    if result:
+        line = read_product(name='NAME, DESCRIPT', code='CODE', product_code=product_code)
+        descr = '' if line[1] is None else line[1]
+        caption = f"Цена {int(price[0][0])} руб.\n{line[0]}\n\n{descr}"
+        return caption
+    else:
+        line = fb_dir_goods_request(column='NAME, PRICE_', code=product_code)
+        caption = f"{int(line[0][1])} руб.\n{line[0][0]}"
+        write_photo_db(product_code, line[0][0])
+        return caption
 
 
 def write_photo_db(code, name):
-    sqlite_cur = sqlite_connection.cursor()
-    sqlite_cur.execute(f'INSERT INTO PRODUCT_DESC (CODE, NAME) VALUES ({code}, {name})')
-    sqlite_cur.commit()
+    sqlite_cursor = sqlite_connection.cursor()
+    sqlite_cursor.execute(f"INSERT INTO PRODUCT_DESC (CODE, NAME) VALUES ('{code}', '{name}')")
+    sqlite_connection.commit()
 
 
 def show_distributor_offer(text):
@@ -67,8 +61,8 @@ def show_distributor_offer(text):
         print('Неправильная работа скрипта')
     sqlite_cur = sqlite_connection.cursor()
     sqlite_cur.execute(
-        f"SELECT PRODUCT, OUT_COST FROM {spreadsheet} "
-        f"DATE = (SELECT MAX(DATE) FROM {spreadsheet}) "
+        f"SELECT DATE, PRODUCT, OUT_COST FROM {spreadsheet} "
+        f"WHERE DATE = (SELECT MAX(DATE) FROM {spreadsheet}) "
         f"ORDER BY OUT_COST"
     )
     result = sqlite_cur.fetchall()
@@ -76,3 +70,12 @@ def show_distributor_offer(text):
         return result
     except TypeError:
         return None
+
+
+def get_date_from_db(table):
+    sqlite_cur = sqlite_connection.cursor()
+    sqlite_cur.execute(
+        f'select max(date) from {table}'
+    )
+    response = sqlite_cur.fetchone()
+    return response

@@ -2,11 +2,11 @@ import fdb
 
 from config import hidden_vars
 
-con = fdb.connect(dsn=hidden_vars.db.dsn, user=hidden_vars.db.user, password=hidden_vars.db.password)
-cursor = con.cursor()
+fdb_connection = fdb.connect(dsn=hidden_vars.db.dsn, user=hidden_vars.db.user, password=hidden_vars.db.password)
 
 
-def goods_list(cur, *args):
+def goods_list(*args):
+    cur = fdb_connection.cursor()
     cur.execute(
         f"SELECT SQ.CODE, SQ.NAME, Sum(QUANTITY), SQ.PRICE_ FROM ("
         f"SELECT dg.CODE, dg.NAME, dst.QUANTITY, dg.PRICE_ "
@@ -37,7 +37,8 @@ def goods_list(cur, *args):
     return cur.fetchall()
 
 
-def fb_dir_goods_request(cur, **kwargs):
+def fb_dir_goods_request(**kwargs):
+    cur = fdb_connection.cursor()
     cur.execute(
         "SELECT {column} FROM DIR_GOODS WHERE CODE = {code}".format(**kwargs)
     )

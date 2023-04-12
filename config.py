@@ -4,7 +4,7 @@ from environs import Env
 
 @dataclass
 class MiscPath:
-    photo: str
+    photo_path: str
     yadisk: str
 
 
@@ -52,7 +52,7 @@ def load_config(path: str = None):
             password=env.str('DB_PASSWORD'),
         ),
         misc_path=MiscPath(
-            photo=env.str("PHOTO_PATH"),
+            photo_path=env.str("PHOTO_PATH"),
             yadisk=env.str("YATOKEN"),
         ),
         mail_connect=MailConnect(
