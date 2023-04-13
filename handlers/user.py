@@ -8,8 +8,8 @@ from aiogram.types import Message, CallbackQuery, FSInputFile
 
 from bot import dp, bot
 from db.fdb_work import goods_list
-from db.sqlite_work import write_user_enter, take_caption_sqlite, read_product
-from core_func import date_out, text_file_order_list, excel_order_list, samsung_del_list, xiaomi_del_list, actual_date
+from db.sqlite_work import write_user_enter, take_caption_sqlite, read_product, get_date_from_db, show_distributor_offer
+from core_func import date_out, title_formatting
 from keyboards.user import user_first_kb, \
     catalog_full_kb, \
     redmi_inline_kb, \
@@ -109,38 +109,25 @@ async def items_order(m: Message):
     await m.answer(text='Товары под заказ доставляются\nот 1-го до 7-ми дней', reply_markup=catalog_order_kb)
 
 
-# async def apple_order(m: Message):
-#     await m.answer(f'Цены обновлены {apple_txt_list[1]} и будут актуальны 1-3 дня')
-#     text = list()
-#     result = text_file_order_list('Shippers/apple/' + str(apple_txt_list[0]))
-#     for k, v in result.items():
-#         text.append((str(k) + ' - ' + str(v)))
-#     line = '↓ ↓ ↓ ↓ \n\n' + '\n'.join(text)
-#     if len(line) > 4096:
-#         for i in range(0, len(line), 4096):
-#             part_mess = line[i: i + 4096]
-#             await m.answer(part_mess)
-#             time.sleep(1)
-#     else:
-#         await m.answer(text=line)
-#     await m.answer('ВНИМАНИЕ, смотрите на дату обновления цен в начале сообщения\n'
-#                    'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
-
-
-async def distrib_order(m: Message):
-
-    # await m.answer(f'Цены обновлены {xiaomi_xlsx_list[1]}\nи будут актуальны 1-3 дня')
-    # result = excel_order_list(xiaomi_xlsx_list[0], xiaomi_del_list)
-    # mess = '↓ ↓ ↓ ↓ \n\n' + ''.join(str(item) + '\n' for item in result)
-    # if len(mess) > 4096:
-    #     for i in range(0, len(mess), 4096):
-    #         part_mess = mess[i: i + 4096]
-    #         await m.answer(part_mess)
-    #         time.sleep(1)
-    # else:
-    #     await m.answer(mess)
-    # await m.answer('ВНИМАНИЕ, смотрите на дату обновления цен в начале сообщения\n'
-    #                'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
+async def display_order_list(m: Message):
+    spreadsheet = str()
+    if m.text == 'Xiaomi под заказ':
+        spreadsheet = 'optmobex_xiaomi'
+    elif m.text == 'Samsung под заказ':
+        spreadsheet = 'optmobex_samsung'
+    update_text = f'Цены обновлены {get_date_from_db(spreadsheet)}\nи будут актуальны 1-3 дня'
+    result = show_distributor_offer(spreadsheet)
+    mess = update_text + '\n\n↓ ↓ ↓ ↓ \n' + \
+           title_formatting(spreadsheet, ''.join(item[0] + ' ' + str(item[1]) + '\n' for item in result))
+    if len(mess) > 4096:
+        for i in range(0, len(mess), 4096):
+            part_mess = mess[i: i + 4096]
+            await m.answer(part_mess)
+            time.sleep(1)
+    else:
+        await m.answer(mess)
+    await m.answer('ВНИМАНИЕ, смотрите на дату обновления цен в начале сообщения\n'
+                   'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
 
 
 async def echo(m: Message):
@@ -185,6 +172,6 @@ def register_user_handlers():
     dp.message.register(smart_watches, F.text == "Умные часы")
     dp.message.register(smart_goods, F.text == "Полный список смартфонов")
     dp.message.register(items_order, F.text == "Под заказ")
-    dp.message.register(hello, F.text == 'Привет')
-    dp.message.register(distrib_order, F.text.contains(' под заказ'))
+    dp.message.register(hello, F.text == "Привет")
+    dp.message.register(display_order_list, F.text.contains(' под заказ'))
     # dp.message.register(download_photo, F.photo)

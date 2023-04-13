@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from core_vars import sqlite_connection
 
 from db.fdb_work import fb_dir_goods_request
@@ -51,18 +53,11 @@ def write_photo_db(code, name):
     sqlite_connection.commit()
 
 
-def show_distributor_offer(text):
-    spreadsheet = str()
-    if text == 'Samsung под заказ':
-        spreadsheet = 'optmobex_samsung'
-    if text == 'Xiaomi под заказ':
-        spreadsheet = 'optmobex_xiaomi'
-    else:
-        print('Неправильная работа скрипта')
+def show_distributor_offer(table):
     sqlite_cur = sqlite_connection.cursor()
     sqlite_cur.execute(
-        f"SELECT DATE, PRODUCT, OUT_COST FROM {spreadsheet} "
-        f"WHERE DATE = (SELECT MAX(DATE) FROM {spreadsheet}) "
+        f"SELECT PRODUCT, OUT_COST FROM {table} "
+        f"WHERE DATE = (SELECT MAX(DATE) FROM {table}) "
         f"ORDER BY OUT_COST"
     )
     result = sqlite_cur.fetchall()
@@ -77,5 +72,10 @@ def get_date_from_db(table):
     sqlite_cur.execute(
         f'select max(date) from {table}'
     )
-    response = sqlite_cur.fetchone()
-    return response
+    response = sqlite_cur.fetchone()[0]
+    date = response.split('T')[0]
+    time = response.split('T')[1]
+    old_format_date = datetime.strptime(date, '%Y-%m-%d')
+    result = old_format_date.strftime('%d-%m-%Y')
+    return str(result) + ' в ' + time
+

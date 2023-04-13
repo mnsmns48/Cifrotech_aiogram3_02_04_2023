@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import email
 import imaplib
@@ -21,8 +22,6 @@ def mail_connect():
     msg_list = list(data_connect[0].decode('UTF-8').split())
     if msg_list:
         return msg_list
-    else:
-        print('нет новых писем')
 
 
 def mail_processing(msg_list):
@@ -110,18 +109,12 @@ def from_xls_into_db(data_list):
             y.upload("db/cifrotech_db", "/shippers/cifrotech_db", overwrite=True)
 
 
-def mail_parsing():
-    try:
-        print("Провека почты")
-        while True:
-            response = mail_connect()
-            if response:
-                prepare_letters = mail_processing(response)
-                if prepare_letters:
-                    from_xls_into_db(prepare_letters)
-            time.sleep(10)
-    except KeyboardInterrupt:
-        print("Скрипт проверки почты остановлен")
-
-
-mail_parsing()
+async def mail_parsing():
+    print("Запущен скрипт мониторинга почты")
+    while True:
+        response = mail_connect()
+        if response:
+            prepare_letters = mail_processing(response)
+            if prepare_letters:
+                from_xls_into_db(prepare_letters)
+        await asyncio.sleep(10)
