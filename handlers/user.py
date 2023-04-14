@@ -174,4 +174,4 @@ def register_user_handlers():
     dp.message.register(items_order, F.text == "Под заказ")
     dp.message.register(hello, F.text == "Привет")
     dp.message.register(display_order_list, F.text.contains(' под заказ'))
-    # dp.message.register(download_photo, F.photo)
+    dp.message.register(download_photo, F

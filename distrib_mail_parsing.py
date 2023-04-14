@@ -7,6 +7,8 @@ import time
 from openpyxl.reader.excel import load_workbook
 from email.header import decode_header
 
+from openpyxl.workbook import Workbook
+
 from config import hidden_vars
 from core_func import date_out, android_profit
 
@@ -53,15 +55,32 @@ def mail_processing(msg_list):
             else:
                 print('Письмо подходит по условию:', hidden_vars.mail_connect.subject_keywords,
                       'но в нём нет вложений')
-        if hidden_vars.mail_connect.subject_keywords_apple in subject:
-            for part in msg.walk():
-                if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
-                    text = base64.b64decode(part.get_payload()).decode()
-            pl = text.split('  -  ')
-            for i in pl:
-                print(i)
-
-
+        # if hidden_vars.mail_connect.subject_keywords_apple in subject:
+        #     text = str()
+        #     for part in msg.walk():
+        #         if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
+        #             text = base64.b64decode(part.get_payload()).decode()
+        #     in_list = list()
+        #     out_list = list()
+        #     for line in text.split('\n'):
+        #         if '  -  ' or ' - ' in line:
+        #             in_list.append(line)
+        #     for line in in_list:
+        #         out_list.append([line.split('  -  ')[0], int(line.split('  -  ')[1])])
+        #     filename = hidden_vars.mail_connect.subject_keywords_apple.replace(' ', '_') \
+        #                + '_' + date_time_letter.replace(' ', '_').replace(':', '-') + '.xlsx'
+        #     wb = Workbook()
+        #     ws = wb.active
+        #     ws.title = "Лист1"
+        #     ws.append(['Наименование', 'Цена', 'Заказ'])
+        #     for row in out_list:
+        #         ws.append(row)
+        #     wb.save(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}')
+        #     y.upload(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}',
+        #              f'/shippers/Mobex/{filename}', overwrite=True)
+        #     to_be_write_into_db.append([filename, date_time_letter])
+        #     print(to_be_write_into_db)
+        #     return to_be_write_into_db
         else:
             print('Новые письма были, но они не подходят под условия')
 
@@ -86,6 +105,8 @@ def from_xls_into_db(data_list):
             price_list_name = 'optmobex_xiaomi'
         if 'sams.xlsx' in data_list[price][0]:
             price_list_name = 'optmobex_samsung'
+        if 'Apple' in data_list[price][0]:
+            price_list_name = 'optmobex_apple'
         result_checking = check_data_in_distributor(data_list[price][1], price_list_name)
         if result_checking:
             print(f'В БД {price_list_name} уже есть такой прайс:', *data_list[price])
@@ -93,9 +114,7 @@ def from_xls_into_db(data_list):
         else:
             print(f'Заношу в БД {price_list_name} такой прайс:', *data_list[price])
             price_list = list()
-            wb = load_workbook(
-                'shippers/' + hidden_vars.mail_connect.mail_path + '/' + data_list[price][0]
-            )
+            wb = load_workbook('shippers/' + hidden_vars.mail_connect.mail_path + '/' + data_list[price][0])
             ws = wb["Лист1"]
             rows = ws.max_row
             cols = ws.max_column - 1
@@ -107,7 +126,7 @@ def from_xls_into_db(data_list):
                     string = string + str(cell.value) + ' '
                 price_list.append(string.strip(' ').split(' '))
             for k in price_list:
-                product_name = " ".join(k[:-1])
+                product_name = ' '.join(k[:-1])
                 input_price = int(k[-1])
                 out_price = android_profit(int(k[-1]))
                 sqlite_cur.execute(f"INSERT INTO {price_list_name} VALUES "
@@ -136,6 +155,9 @@ def mail_parsing():
         response = mail_connect()
         if response:
             mail_processing(response)
+            prepare_letters = mail_processing(response)
+            if prepare_letters:
+                from_xls_into_db(prepare_letters)
         print('ухожу в сон на 5 сек')
         time.sleep(5)
 
