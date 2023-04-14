@@ -31,7 +31,7 @@ def mail_processing(msg_list):
         msg = email.message_from_bytes(data[0][1])
         date_time_letter = date_out(email.utils.parsedate_to_datetime(msg["Date"]))
         subject = decode_header(msg["Subject"])[0][0].decode()
-        if hidden_vars.mail_connect.subject_keywords in subject:
+        if hidden_vars.mail_connect.subject_keywords_xls in subject:
             if msg.is_multipart():
                 for part in msg.walk():
                     if part.get_content_maintype() == 'multipart' or part.get('Content-Disposition') is None:
@@ -43,14 +43,25 @@ def mail_processing(msg_list):
                         filename = base64.b64decode(filename_parts[3]).decode(filename_parts[1])
                         if '.xlsx' or '.xls' in filename:
                             with open(
-                                    'shippers/' + hidden_vars.mail_connect.mail_path + '/' + filename, 'wb'
+                                    f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}', 'wb'
                             ) as new_file:
                                 new_file.write(part.get_payload(decode=True))
+                            y.upload(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}',
+                                     f'/shippers/Mobex/{filename}', overwrite=True)
                             to_be_write_into_db.append([filename, date_time_letter])
                 return to_be_write_into_db
             else:
                 print('Письмо подходит по условию:', hidden_vars.mail_connect.subject_keywords,
                       'но в нём нет вложений')
+        if hidden_vars.mail_connect.subject_keywords_apple in subject:
+            for part in msg.walk():
+                if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
+                    text = base64.b64decode(part.get_payload()).decode()
+            pl = text.split('  -  ')
+            for i in pl:
+                print(i)
+
+
         else:
             print('Новые письма были, но они не подходят под условия')
 
@@ -106,15 +117,27 @@ def from_xls_into_db(data_list):
                                    f"'{out_price}')")
             sqlite_connection.commit()
             print('Запись:', data_list[price][0], 'завершена')
-            y.upload("db/cifrotech_db", "/shippers/cifrotech_db", overwrite=True)
+            y.upload('db/cifrotech_db', '/shippers/cifrotech_db', overwrite=True)
 
 
-async def mail_parsing():
-    print("Запущен скрипт мониторинга почты")
+# async def mail_parsing():
+#     print("Запущен скрипт мониторинга почты")
+#     while True:
+#         response = mail_connect()
+#         if response:
+#             prepare_letters = mail_processing(response)
+#             if prepare_letters:
+#                 from_xls_into_db(prepare_letters)
+#
+#         await asyncio.sleep(30)
+
+def mail_parsing():
     while True:
         response = mail_connect()
         if response:
-            prepare_letters = mail_processing(response)
-            if prepare_letters:
-                from_xls_into_db(prepare_letters)
-        await asyncio.sleep(10)
+            mail_processing(response)
+        print('ухожу в сон на 5 сек')
+        time.sleep(5)
+
+
+mail_parsing()

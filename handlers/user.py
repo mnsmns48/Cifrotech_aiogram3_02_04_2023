@@ -54,6 +54,15 @@ async def show_product(callback: CallbackQuery):
 
 
 async def start(m: Message):
+    write_user_enter(
+        date_out(m.date),
+        m.from_user.id,
+        m.from_user.first_name,
+        m.from_user.last_name,
+        m.from_user.username,
+        m.message_id,
+        m.text
+    )
     await m.answer_photo(photo='AgACAgIAAxkBAAIFuWQVrxkxJMuUdAUGfGAuXSt448I1AAKgxjEbYxGxSFOciZYzLCoJAQADAgADeQADLwQ',
                          caption=f'Привет, {m.from_user.full_name}, этот БОТ показывает цены и текущее наличие товаров '
                                  f'в салоне мобильной связи ЦИФРОТЕХ\nА также актуальные цены на смартфоны под заказ',
@@ -131,15 +140,6 @@ async def display_order_list(m: Message):
 
 
 async def echo(m: Message):
-    write_user_enter(
-        date_out(m.date),
-        m.from_user.id,
-        m.from_user.first_name,
-        m.from_user.last_name,
-        m.from_user.username,
-        m.message_id,
-        m.text
-    )
     if {i.lower().translate(str.maketrans('', '', string.punctuation)) for i in m.text.split(' ')} \
             .intersection(set(json.load(open('mat.json')))):
         await m.reply('Некрасиво выражаешься')

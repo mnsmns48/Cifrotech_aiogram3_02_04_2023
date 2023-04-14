@@ -20,7 +20,8 @@ class MailConnect:
     mailbox: str
     mail_pass: str
     mail_path: str
-    subject_keywords: str
+    subject_keywords_xls: str
+    subject_keywords_apple: str
 
 
 @dataclass
@@ -59,7 +60,8 @@ def load_config(path: str = None):
             mailbox=env.str("MAIL_BOX"),
             mail_pass=env.str("MAIL_PASS"),
             mail_path=env.str("MAIL_PATH"),
-            subject_keywords=env.str("SUBJECT_KEYWORDS"),
+            subject_keywords_xls=env.str("SUBJECT_KEYWORDS_XLS"),
+            subject_keywords_apple=env.str("SUBJECT_KEYWORDS_APPLE"),
         ),
     )
 
