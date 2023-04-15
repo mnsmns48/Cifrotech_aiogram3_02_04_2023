@@ -1,7 +1,7 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from db.fdb_work import goods_list, cursor
+from db.fdb_work import goods_list
 
 samsung_phone_path = [80, 80]
 realme_phone_path = [81, 81]
@@ -15,7 +15,7 @@ smart_watches = [36, 36]
 
 def show(*args):
     txt = list()
-    result = goods_list(cursor, *args)
+    result = goods_list(*args)
     for row in result:
         name = row[1].split(' ', 1)
         txt.append(f'{int(row[3])} {name[1]}_+_{row[0]}')
