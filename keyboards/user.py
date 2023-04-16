@@ -11,6 +11,9 @@ tcl_phone_path = [84, 84]
 mediapad_phone_path = [29, 29]
 key_old_phones = [28, 28]
 smart_watches = [36, 36]
+powerbanks = [54, 54]
+battery = [3, 3]
+display = [86, 86]
 
 
 def show(*args):
@@ -28,6 +31,7 @@ user_first_kb = ReplyKeyboardMarkup(resize_keyboard=True,
                                     keyboard=[
                                         [KeyboardButton(text='В наличии')],
                                         [KeyboardButton(text='Под заказ')],
+                                        [KeyboardButton(text='Услуги')],
                                     ])
 
 catalog_full_kb = ReplyKeyboardMarkup(resize_keyboard=True,
@@ -37,7 +41,8 @@ catalog_full_kb = ReplyKeyboardMarkup(resize_keyboard=True,
                                           [KeyboardButton(text='Планшеты')],
                                           [KeyboardButton(text='Умные часы')],
                                           [KeyboardButton(text='Кнопочные телефоны')],
-                                          [KeyboardButton(text='Перейти в начало')]
+                                          [KeyboardButton(text='Power Banks')],
+                                          [KeyboardButton(text='Перейти в начало')],
                                       ])
 catalog_brand_phones_kb = ReplyKeyboardMarkup(resize_keyboard=True,
                                               one_time_keyboard=False,
@@ -99,6 +104,12 @@ for i in show(*smart_watches):
     watches_kb.row(InlineKeyboardButton(
         text=line[0], callback_data=line[1]))
 
+powerbanks_kb = InlineKeyboardBuilder()
+for i in show(*powerbanks):
+    line = i.split('_+_')
+    powerbanks_kb.row(InlineKeyboardButton(
+        text=line[0], callback_data=line[1]))
+
 catalog_order_kb = ReplyKeyboardMarkup(resize_keyboard=True,
                                        one_time_keyboard=False,
                                        keyboard=[
@@ -107,3 +118,32 @@ catalog_order_kb = ReplyKeyboardMarkup(resize_keyboard=True,
                                            [KeyboardButton(text='Samsung под заказ')],
                                            [KeyboardButton(text='Перейти в начало')],
                                        ])
+
+services_kb = ReplyKeyboardMarkup(resize_keyboard=True,
+                                  one_time_keyboard=False,
+                                  keyboard=[
+                                      [KeyboardButton(text='Ремонт смартфонов')],
+                                      [KeyboardButton(text='Ксерокопия, печать, сканирование')],
+                                      [KeyboardButton(text='Проектирование чат-ботов')],
+                                      [KeyboardButton(text='Перейти в начало')],
+                                  ])
+
+smartphone_repair_kb = ReplyKeyboardMarkup(resize_keyboard=True,
+                                           one_time_keyboard=False,
+                                           keyboard=[
+                                               [KeyboardButton(text='Замена дисплея')],
+                                               [KeyboardButton(text='Замена батареи')],
+                                               [KeyboardButton(text='Перейти в начало')],
+                                           ])
+
+battery_kb = InlineKeyboardBuilder()
+for i in show(*battery):
+    line = i.split('_+_')
+    battery_kb.row(InlineKeyboardButton(
+        text=line[0], callback_data=line[1]))
+
+display_kb = InlineKeyboardBuilder()
+for i in show(*display):
+    line = i.split('_+_')
+    display_kb.row(InlineKeyboardButton(
+        text=line[0], callback_data=line[1]))

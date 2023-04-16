@@ -1,13 +1,5 @@
-import imaplib
-import os
-from datetime import datetime
-
-import requests
-import yadisk
-from openpyxl.reader.excel import load_workbook
 import pytz
-
-from config import hidden_vars
+from datetime import datetime
 
 samsung_xlsx_list = list()
 xiaomi_xlsx_list = list()
