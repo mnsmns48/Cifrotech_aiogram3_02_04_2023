@@ -3,6 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from db.fdb_work import goods_list
 
+honor_phone_path = [87, 87]
 samsung_phone_path = [80, 80]
 realme_phone_path = [81, 81]
 redmi_phone_path = [82, 82]
@@ -49,6 +50,7 @@ catalog_brand_phones_kb = ReplyKeyboardMarkup(resize_keyboard=True,
                                               keyboard=[
                                                   [KeyboardButton(text='Xiaomi / Redmi / Poco')],
                                                   [KeyboardButton(text='Realme / Oppo / OnePlus')],
+                                                  [KeyboardButton(text='Huawei / Honor')],
                                                   [KeyboardButton(text='Samsung')],
                                                   [KeyboardButton(text='Tecno / Infinix')],
                                                   [KeyboardButton(text='TCL')],
@@ -66,6 +68,12 @@ realme_inline_kb = InlineKeyboardBuilder()
 for i in show(*realme_phone_path):
     line = i.split('_+_')
     realme_inline_kb.row(InlineKeyboardButton(
+        text=line[0], callback_data=line[1]))
+
+honor_inline_kb = InlineKeyboardBuilder()
+for i in show(*honor_phone_path):
+    line = i.split('_+_')
+    honor_inline_kb.row(InlineKeyboardButton(
         text=line[0], callback_data=line[1]))
 
 samsung_inline_kb = InlineKeyboardBuilder()
@@ -147,3 +155,5 @@ for i in show(*display):
     line = i.split('_+_')
     display_kb.row(InlineKeyboardButton(
         text=line[0], callback_data=line[1]))
+
+

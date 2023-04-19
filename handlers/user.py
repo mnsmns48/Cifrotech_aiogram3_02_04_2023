@@ -21,7 +21,7 @@ from keyboards.user import user_first_kb, \
     media_pad_kb, \
     key_old_phones_kb, \
     watches_kb, \
-    catalog_order_kb, powerbanks_kb, services_kb, smartphone_repair_kb, battery_kb, display_kb
+    catalog_order_kb, powerbanks_kb, services_kb, smartphone_repair_kb, battery_kb, display_kb, honor_inline_kb
 
 from config import hidden_vars
 
@@ -88,6 +88,10 @@ async def redmi_phones(m: Message):
 
 async def realme_phones(m: Message):
     await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=realme_inline_kb.as_markup())
+
+
+async def honor_phones(m: Message):
+    await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=honor_inline_kb.as_markup())
 
 
 async def samsung_phones(m: Message):
@@ -205,6 +209,7 @@ def register_user_handlers():
     dp.message.register(catalog_phones, F.text == 'Смартфоны')
     dp.message.register(redmi_phones, F.text == 'Xiaomi / Redmi / Poco')
     dp.message.register(realme_phones, F.text == "Realme / Oppo / OnePlus")
+    dp.message.register(honor_phones, F.text == "Huawei / Honor")
     dp.message.register(samsung_phones, F.text == "Samsung")
     dp.message.register(tecno_phones, F.text == "Tecno / Infinix")
     dp.message.register(tcl_phones, F.text == "TCL")
