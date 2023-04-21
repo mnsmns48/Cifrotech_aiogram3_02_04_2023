@@ -196,9 +196,6 @@ async def echo(m: Message):
         await m.reply('Некрасиво выражаешься')
         await m.delete()
     else:
-        json_str = json.dumps(m.dict(), default=str)
-        with open('test2.json', 'w') as f:
-            f.write(json_str)
         await m.answer('Всё ясно! Пользуйся всплывающей клавиатурой')
 
 
