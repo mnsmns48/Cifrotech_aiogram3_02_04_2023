@@ -2,11 +2,11 @@ import json
 import string
 import time
 
-from aiogram import F
+from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, FSInputFile
 
-from bot import dp, bot
+from bot import bot
 from db.fdb_work import goods_list
 from db.sqlite_work import write_user_enter, take_caption_sqlite, read_product, get_date_from_db, show_distributor_offer
 from core_func import date_out, title_formatting
@@ -24,6 +24,8 @@ from keyboards.user import user_first_kb, \
     catalog_order_kb, powerbanks_kb, services_kb, smartphone_repair_kb, battery_kb, display_kb, honor_inline_kb
 
 from config import hidden_vars
+
+user_ = Router()
 
 
 async def smart_goods(m: Message):
@@ -184,48 +186,46 @@ async def display_order_list(m: Message):
                    'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
 
 
+async def hello(m: Message):
+    await m.answer('И тебе привет! Внизу есть клавиатура, выбирай нужный пункт меню')
+
+
 async def echo(m: Message):
     if {i.lower().translate(str.maketrans('', '', string.punctuation)) for i in m.text.split(' ')} \
             .intersection(set(json.load(open('mat.json')))):
         await m.reply('Некрасиво выражаешься')
         await m.delete()
     else:
+        json_str = json.dumps(m.dict(), default=str)
+        with open('test2.json', 'w') as f:
+            f.write(json_str)
         await m.answer('Всё ясно! Пользуйся всплывающей клавиатурой')
 
 
-async def hello(m: Message):
-    await m.answer('И тебе привет! Внизу есть клавиатура, выбирай нужный пункт меню')
-
-
-async def download_photo(m: Message):
-    await m.answer(m.photo[-1].file_id)
-
-
 def register_user_handlers():
-    dp.message.register(start, CommandStart())
-    dp.callback_query.register(show_product)
-    dp.message.register(begin, F.text == 'Перейти в начало')
-    dp.message.register(catalog_all, F.text == 'В наличии')
-    dp.message.register(catalog_phones, F.text == 'Смартфоны')
-    dp.message.register(redmi_phones, F.text == 'Xiaomi / Redmi / Poco')
-    dp.message.register(realme_phones, F.text == "Realme / Oppo / OnePlus")
-    dp.message.register(honor_phones, F.text == "Huawei / Honor")
-    dp.message.register(samsung_phones, F.text == "Samsung")
-    dp.message.register(tecno_phones, F.text == "Tecno / Infinix")
-    dp.message.register(tcl_phones, F.text == "TCL")
-    dp.message.register(catalog_media_pad, F.text == "Планшеты")
-    dp.message.register(catalog_old_key_phones, F.text == "Кнопочные телефоны")
-    dp.message.register(smart_watches, F.text == "Умные часы")
-    dp.message.register(powerbanks, F.text == "Power Banks")
-    dp.message.register(smart_goods, F.text == "Полный список смартфонов")
-    dp.message.register(items_order, F.text == "Под заказ")
-    dp.message.register(hello, F.text == "Привет")
-    dp.message.register(display_order_list, F.text.contains(' под заказ'))
-    dp.message.register(services, F.text == 'Услуги')
-    dp.message.register(smartphone_repair, F.text == 'Ремонт смартфонов')
-    dp.message.register(battery, F.text == 'Замена батареи')
-    dp.message.register(display, F.text == 'Замена дисплея')
-    dp.message.register(xerox, F.text == 'Ксерокопия, печать, сканирование')
-    dp.message.register(chat_bot, F.text == 'Проектирование чат-ботов')
-    dp.message.register(echo, F.text)
-    # dp.message.register(download_photo, F.photo)
+    user_.message.register(start, CommandStart())
+    user_.callback_query.register(show_product)
+    user_.message.register(begin, F.text == 'Перейти в начало')
+    user_.message.register(catalog_all, F.text == 'В наличии')
+    user_.message.register(catalog_phones, F.text == 'Смартфоны')
+    user_.message.register(redmi_phones, F.text == 'Xiaomi / Redmi / Poco')
+    user_.message.register(realme_phones, F.text == "Realme / Oppo / OnePlus")
+    user_.message.register(honor_phones, F.text == "Huawei / Honor")
+    user_.message.register(samsung_phones, F.text == "Samsung")
+    user_.message.register(tecno_phones, F.text == "Tecno / Infinix")
+    user_.message.register(tcl_phones, F.text == "TCL")
+    user_.message.register(catalog_media_pad, F.text == "Планшеты")
+    user_.message.register(catalog_old_key_phones, F.text == "Кнопочные телефоны")
+    user_.message.register(smart_watches, F.text == "Умные часы")
+    user_.message.register(powerbanks, F.text == "Power Banks")
+    user_.message.register(smart_goods, F.text == "Полный список смартфонов")
+    user_.message.register(items_order, F.text == "Под заказ")
+    user_.message.register(hello, F.text.lower() == "привет")
+    user_.message.register(display_order_list, F.text.contains(' под заказ'))
+    user_.message.register(services, F.text == 'Услуги')
+    user_.message.register(smartphone_repair, F.text == 'Ремонт смартфонов')
+    user_.message.register(battery, F.text == 'Замена батареи')
+    user_.message.register(display, F.text == 'Замена дисплея')
+    user_.message.register(xerox, F.text == 'Ксерокопия, печать, сканирование')
+    user_.message.register(chat_bot, F.text == 'Проектирование чат-ботов')
+    user_.message.register(echo, F.text)
