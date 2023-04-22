@@ -16,6 +16,11 @@ class DbConfig:
 
 
 @dataclass
+class SqDb:
+    sqlite_db_path: str
+
+
+@dataclass
 class MailConnect:
     mailbox: str
     mail_pass: str
@@ -34,6 +39,7 @@ class TgBot:
 class Config:
     tg_bot: TgBot
     db: DbConfig
+    sq: SqDb
     misc_path: MiscPath
     mail_connect: MailConnect
 
@@ -51,6 +57,9 @@ def load_config(path: str = None):
             dsn=env.str('DB_DSN'),
             user=env.str('DB_USER'),
             password=env.str('DB_PASSWORD'),
+        ),
+        sq=SqDb(
+            sqlite_db_path=env.str("SQLITE_DB_PATH"),
         ),
         misc_path=MiscPath(
             photo_path=env.str("PHOTO_PATH"),

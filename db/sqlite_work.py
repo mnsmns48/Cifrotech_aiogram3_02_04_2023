@@ -79,3 +79,9 @@ def get_date_from_db(table):
     result = old_format_date.strftime('%d-%m-%Y')
     return str(result) + ' в ' + time
 
+
+def choose_table():
+    sqlite_cur = sqlite_connection.cursor()
+    sqlite_cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    result = sqlite_cur.fetchall()
+    return result

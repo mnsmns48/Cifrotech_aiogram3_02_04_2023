@@ -192,7 +192,7 @@ async def hello(m: Message):
 
 async def echo(m: Message):
     if {i.lower().translate(str.maketrans('', '', string.punctuation)) for i in m.text.split(' ')} \
-            .intersection(set(json.load(open('mat.json')))):
+            .intersection(set(json.load(open('very_bad_word.json')))):
         await m.reply('Некрасиво выражаешься')
         await m.delete()
     else:

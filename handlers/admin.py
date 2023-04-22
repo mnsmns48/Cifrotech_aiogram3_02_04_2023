@@ -4,12 +4,13 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 from aiogram import F
 
+from core_func import date_out
 from db.fdb_work import sales_one_day
 from filters import AdminFilter
-from keyboards.admin import admin_basic_kb
+from keyboards.admin import admin_basic_kb, choose_price
 
 admin_ = Router()
 
@@ -59,8 +60,21 @@ async def answer_date_another_day(m: Message, state: FSMContext):
 
 
 async def price_download(m: Message, state: FSMContext):
-    await m.answer('Перешли мне прайс, я запишу его в базу данных')
+    await m.answer('Добавляем')
     await state.set_state(GiveMeData.apple_price)
+
+
+async def price_download_receiving(m: Message, state: FSMContext):
+    await state.update_data(apple_price=m.text)
+    await m.answer('Выбери куда сохранять', reply_markup=choose_price.as_markup())
+
+
+async def choose_table(call: CallbackQuery, state: FSMContext):
+    text = await state.get_data()
+    print(text.get('apple_price'))
+    await call.message.answer('вывел в консоль')
+
+    await state.clear()
 
 
 async def download_photo(m: Message):
@@ -79,3 +93,5 @@ def register_admin_handlers():
     admin_.message.register(choose_date, F.text.contains('Продажи '))
     admin_.message.register(answer_date_another_day, GiveMeData.date)
     admin_.message.register(price_download, F.text == 'Загрузить прайс Apple')
+    admin_.message.register(price_download_receiving, GiveMeData.apple_price)
+    admin_.callback_query.register(choose_table)
