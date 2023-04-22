@@ -7,23 +7,34 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram import F
 
-from core_func import date_out
+from core_func import date_out, pars_price_from_mes
 from db.fdb_work import sales_one_day
 from filters import AdminFilter
-from keyboards.admin import admin_basic_kb, choose_price
+from keyboards.admin import admin_basic_kb, choose_price_ibk, separator_ibk
 
 admin_ = Router()
 
 
 class GiveMeData(StatesGroup):
     date = State()
-    apple_price = State()
+    price = State()
+    choose_separator = State()
+    choose_table = State()
 
 
 date_today = date.today()
 date_yesterday = date_today - timedelta(days=1)
 date_today = str(date_today)
 date_yesterday = str(date_yesterday)
+
+
+async def download_photo(m: Message):
+    await m.answer('Адрес на сервере Telegram:')
+    await m.answer(m.photo[-1].file_id)
+
+
+async def start(m: Message):
+    await m.answer('Admin Mode', reply_markup=admin_basic_kb)
 
 
 async def choose_date(m: Message, state: FSMContext) -> None:
@@ -59,31 +70,32 @@ async def answer_date_another_day(m: Message, state: FSMContext):
         await state.clear()
 
 
-async def price_download(m: Message, state: FSMContext):
-    await m.answer('Добавляем')
-    await state.set_state(GiveMeData.apple_price)
+async def price_download_1(m: Message, state: FSMContext):
+    await m.answer('Добавляем прайс')
+    await state.set_state(GiveMeData.price)
 
 
-async def price_download_receiving(m: Message, state: FSMContext):
-    await state.update_data(apple_price=m.text)
-    await m.answer('Выбери куда сохранять', reply_markup=choose_price.as_markup())
+async def price_download_2(m: Message, state: FSMContext):
+    await state.update_data(price=m.text)
+    await m.answer('Каким знаком разделяется название и цена', reply_markup=separator_ibk.as_markup())
+    await state.set_state(GiveMeData.choose_separator)
 
 
-async def choose_table(call: CallbackQuery, state: FSMContext):
-    text = await state.get_data()
-    print(text.get('apple_price'))
-    await call.message.answer('вывел в консоль')
-
-    await state.clear()
+async def price_download_3(call: CallbackQuery, state: FSMContext):
+    await state.update_data(choose_separator=call.data)
+    await call.message.answer('Выбери в какой прайс добавить', reply_markup=choose_price_ibk.as_markup())
+    await state.set_state(GiveMeData.choose_table)
 
 
-async def download_photo(m: Message):
-    await m.answer('Адрес на сервере Telegram:')
-    await m.answer(m.photo[-1].file_id)
+async def price_download_4(call: CallbackQuery, state: FSMContext):
 
-
-async def start(m: Message):
-    await m.answer('Admin Mode', reply_markup=admin_basic_kb)
+    state_data = await state.get_data()
+    price_ = state_data.get('price')
+    separator_ = state_data.get('choose_separator')
+    table = call.data
+    date_ = call.message.date
+    pars_price_from_mes(price_, separator_, table, date_)
+    await call.message.answer('Занесено в БД: ' + str(table) + ' ' + str(date_out(date_)[:10]))
 
 
 def register_admin_handlers():
@@ -92,6 +104,7 @@ def register_admin_handlers():
     admin_.message.register(start, CommandStart())
     admin_.message.register(choose_date, F.text.contains('Продажи '))
     admin_.message.register(answer_date_another_day, GiveMeData.date)
-    admin_.message.register(price_download, F.text == 'Загрузить прайс Apple')
-    admin_.message.register(price_download_receiving, GiveMeData.apple_price)
-    admin_.callback_query.register(choose_table)
+    admin_.message.register(price_download_1, F.text == 'Загрузить прайс Apple')
+    admin_.message.register(price_download_2, GiveMeData.price)
+    admin_.callback_query.register(price_download_3, GiveMeData.choose_separator)
+    admin_.callback_query.register(price_download_4, GiveMeData.choose_table)

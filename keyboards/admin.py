@@ -15,12 +15,19 @@ admin_basic_ = [
 admin_basic_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False, keyboard=admin_basic_)
 
 
-choose_price = InlineKeyboardBuilder()
+choose_price_ibk = InlineKeyboardBuilder()
 required_tables = []
 for row in choose_table():
     for column in row:
         required_tables.append(column)
 for line in required_tables:
     if re.findall('apple', line):
-        choose_price.row(InlineKeyboardButton(
+        choose_price_ibk.row(InlineKeyboardButton(
             text=line, callback_data=line))
+
+
+separator_ibk = InlineKeyboardBuilder()
+separator_ibk.row(InlineKeyboardButton(
+    text='⋞ - ⋟', callback_data='separator_dash'))
+separator_ibk.row(InlineKeyboardButton(
+    text='⋞ пробел ⋟', callback_data='separator_space'))

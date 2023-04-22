@@ -10,7 +10,7 @@ from email.header import decode_header
 from openpyxl.workbook import Workbook
 
 from config import hidden_vars
-from core_func import date_out, android_profit
+from core_func import date_out, _profit
 
 from core_vars import y, sqlite_connection
 
@@ -127,7 +127,7 @@ def from_xls_into_db(data_list):
             for k in price_list:
                 product_name = ' '.join(k[:-1])
                 input_price = int(k[-1])
-                out_price = android_profit(int(k[-1]))
+                out_price = _profit(int(k[-1]))
                 sqlite_cur.execute(f"INSERT INTO {price_list_name} VALUES "
                                    f"('{data_list[price][1]}', "
                                    f"'{product_name}', "
