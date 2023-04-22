@@ -2,7 +2,7 @@ import asyncio
 import base64
 import email
 import imaplib
-import time
+import quopri
 
 from openpyxl.reader.excel import load_workbook
 from email.header import decode_header
@@ -51,38 +51,37 @@ def mail_processing(msg_list):
                             y.upload(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}',
                                      f'/shippers/Mobex/{filename}', overwrite=True)
                             to_be_write_into_db.append([filename, date_time_letter])
-                return to_be_write_into_db
-            else:
-                print('Письмо подходит по условию:', hidden_vars.mail_connect.subject_keywords,
-                      'но в нём нет вложений')
-        # if hidden_vars.mail_connect.subject_keywords_apple in subject:
-        #     text = str()
-        #     for part in msg.walk():
-        #         if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
-        #             text = base64.b64decode(part.get_payload()).decode()
-        #     in_list = list()
-        #     out_list = list()
-        #     for line in text.split('\n'):
-        #         if '  -  ' or ' - ' in line:
-        #             in_list.append(line)
-        #     for line in in_list:
-        #         out_list.append([line.split('  -  ')[0], int(line.split('  -  ')[1])])
-        #     filename = hidden_vars.mail_connect.subject_keywords_apple.replace(' ', '_') \
-        #                + '_' + date_time_letter.replace(' ', '_').replace(':', '-') + '.xlsx'
-        #     wb = Workbook()
-        #     ws = wb.active
-        #     ws.title = "Лист1"
-        #     ws.append(['Наименование', 'Цена', 'Заказ'])
-        #     for row in out_list:
-        #         ws.append(row)
-        #     wb.save(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}')
-        #     y.upload(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}',
-        #              f'/shippers/Mobex/{filename}', overwrite=True)
-        #     to_be_write_into_db.append([filename, date_time_letter])
-        #     print(to_be_write_into_db)
-        #     return to_be_write_into_db
-        else:
-            print('Новые письма были, но они не подходят под условия')
+        if hidden_vars.mail_connect.subject_keywords_apple in subject:
+            for part in msg.walk():
+                if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
+                    transfer_encoding = part.get_all('Content-Transfer-Encoding')
+                    if transfer_encoding and transfer_encoding[0] == 'base64':
+                        text = base64.b64decode(part.get_payload()).decode()
+                        to_be_write_into_db = add_excel_data(text, date_time_letter)
+                    if transfer_encoding and transfer_encoding[0] == 'quoted-printable':
+                        text = quopri.decodestring(part.get_payload()).decode('utf-8')
+                        to_be_write_into_db = add_excel_data(text, date_time_letter)
+        return to_be_write_into_db
+
+
+#
+def add_excel_data(text_data, date):
+    to_be_write_into_db = list()
+    in_list = list()
+    for line in text_data.split('\n'):
+        if len(line) > 5 and '-' in line:
+            in_list.append(line.partition('-'))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Лист1"
+    ws.append(['Наименование', 'Цена', 'Заказ'])
+    for row in in_list:
+        ws.append([row[0].strip(), int(row[2].replace(' ', ''))])
+    filename = hidden_vars.mail_connect.subject_keywords_apple.replace(' ', '_') + '_' + date[:10] + '.xlsx'
+    wb.save(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}')
+    y.upload(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}', f'/shippers/Mobex/{filename}', overwrite=True)
+    to_be_write_into_db.append([filename, date])
+    return to_be_write_into_db
 
 
 def check_data_in_distributor(date, distributor_price_list):
@@ -139,27 +138,11 @@ def from_xls_into_db(data_list):
             y.upload('db/cifrotech_db', '/shippers/cifrotech_db', overwrite=True)
 
 
-# async def mail_parsing():
-#     print("Запущен скрипт мониторинга почты")
-#     while True:
-#         response = mail_connect()
-#         if response:
-#             prepare_letters = mail_processing(response)
-#             if prepare_letters:
-#                 from_xls_into_db(prepare_letters)
-#
-#         await asyncio.sleep(30)
-
-def mail_parsing():
+async def mail_parsing():
     while True:
         response = mail_connect()
         if response:
-            mail_processing(response)
             prepare_letters = mail_processing(response)
             if prepare_letters:
                 from_xls_into_db(prepare_letters)
-        print('ухожу в сон на 5 сек')
-        time.sleep(5)
-
-
-mail_parsing()
+        await asyncio.sleep(10)

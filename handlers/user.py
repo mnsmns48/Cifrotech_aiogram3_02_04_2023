@@ -2,11 +2,11 @@ import json
 import string
 import time
 
-from aiogram import F
+from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery, FSInputFile
 
-from bot import dp, bot
+from bot import bot
 from db.fdb_work import goods_list
 from db.sqlite_work import write_user_enter, take_caption_sqlite, read_product, get_date_from_db, show_distributor_offer
 from core_func import date_out, title_formatting
@@ -21,9 +21,11 @@ from keyboards.user import user_first_kb, \
     media_pad_kb, \
     key_old_phones_kb, \
     watches_kb, \
-    catalog_order_kb
+    catalog_order_kb, powerbanks_kb, services_kb, smartphone_repair_kb, battery_kb, display_kb, honor_inline_kb
 
 from config import hidden_vars
+
+user_ = Router()
 
 
 async def smart_goods(m: Message):
@@ -41,7 +43,6 @@ async def show_product(callback: CallbackQuery):
     chat_id = callback.from_user.id
     caption = take_caption_sqlite(code_product)
     pic = read_product(name='PHOTO', code='CODE', product_code=code_product)
-    print(pic)
     if pic is None or pic[0] is None:
         pic = FSInputFile(path=hidden_vars.misc_path.photo_path + str(code_product) + '.jpg',
                           chunk_size=100)
@@ -64,8 +65,9 @@ async def start(m: Message):
         m.text
     )
     await m.answer_photo(photo='AgACAgIAAxkBAAIFuWQVrxkxJMuUdAUGfGAuXSt448I1AAKgxjEbYxGxSFOciZYzLCoJAQADAgADeQADLwQ',
-                         caption=f'Привет, {m.from_user.full_name}, этот БОТ показывает цены и текущее наличие товаров '
-                                 f'в салоне мобильной связи ЦИФРОТЕХ\nА также актуальные цены на смартфоны под заказ',
+                         caption=f'Привет, {m.from_user.full_name}, этот БОТ показывает наличие и цены '
+                                 f'в салоне мобильной связи ЦИФРОТЕХ\n\n'
+                                 f'А также актуальные цены на продукцию под заказ',
                          reply_markup=user_first_kb)
 
 
@@ -88,6 +90,10 @@ async def redmi_phones(m: Message):
 
 async def realme_phones(m: Message):
     await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=realme_inline_kb.as_markup())
+
+
+async def honor_phones(m: Message):
+    await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=honor_inline_kb.as_markup())
 
 
 async def samsung_phones(m: Message):
@@ -114,8 +120,47 @@ async def smart_watches(m: Message):
     await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=watches_kb.as_markup())
 
 
+async def powerbanks(m: Message):
+    await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=powerbanks_kb.as_markup())
+
+
 async def items_order(m: Message):
     await m.answer(text='Товары под заказ доставляются\nот 1-го до 7-ми дней', reply_markup=catalog_order_kb)
+
+
+async def services(m: Message):
+    await m.answer('Услуги', reply_markup=services_kb)
+
+
+async def smartphone_repair(m: Message):
+    await m.answer('Можем быстро и недорого оказать помощь по ремонту', reply_markup=smartphone_repair_kb)
+
+
+async def battery(m: Message):
+    await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=battery_kb.as_markup())
+    await m.answer('Заменим аккумулятор на вашем смартфоне.\n'
+                   'Ассортимент тех, что в наличии представлен выше\n'
+                   'Для заказа любого другого аккумулятора пишите:\n@tser88 или @cifrotech_mobile')
+
+
+async def display(m: Message):
+    await m.answer(text='↓ ↓ ↓ В Наличии', reply_markup=display_kb.as_markup())
+    await m.answer('Заменим разбитый дислпей!\n'
+                   'Ассортимент тех, что в наличии представлен выше\n'
+                   'Стоимость указана за дисплей вместе с услугой по установке\n'
+                   'Для заказа любого другого пишите:\n@tser88 или @cifrotech_mobile')
+
+
+async def xerox(m: Message):
+    await m.answer_photo(photo='AgACAgIAAxkBAAIUBGQ7_ZXQPPvs1o8pNmt9ncZIKTd2AAKlxzEb73ThScaSExX72hsBAQADAgADeQADLwQ',
+                         caption='ПН-СБ: С 8-00 до 17-00\n'
+                                 '   ВС: С 9-00 до 17-00\n\n'
+                                 'Всегда рады помочь🙂')
+
+
+async def chat_bot(m: Message):
+    await m.answer('Любые консультации по проектированию, созданию и размещению на сервере чат-ботов любой сложности\n'
+                   '@tser88\n\n')
 
 
 async def display_order_list(m: Message):
@@ -124,6 +169,8 @@ async def display_order_list(m: Message):
         spreadsheet = 'optmobex_xiaomi'
     elif m.text == 'Samsung под заказ':
         spreadsheet = 'optmobex_samsung'
+    elif m.text == 'Apple под заказ':
+        spreadsheet = 'optmobex_apple'
     update_text = f'Цены обновлены {get_date_from_db(spreadsheet)}\nи будут актуальны 1-3 дня'
     result = show_distributor_offer(spreadsheet)
     mess = update_text + '\n\n↓ ↓ ↓ ↓ \n' + \
@@ -139,6 +186,10 @@ async def display_order_list(m: Message):
                    'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
 
 
+async def hello(m: Message):
+    await m.answer('И тебе привет! Внизу есть клавиатура, выбирай нужный пункт меню')
+
+
 async def echo(m: Message):
     if {i.lower().translate(str.maketrans('', '', string.punctuation)) for i in m.text.split(' ')} \
             .intersection(set(json.load(open('mat.json')))):
@@ -148,30 +199,30 @@ async def echo(m: Message):
         await m.answer('Всё ясно! Пользуйся всплывающей клавиатурой')
 
 
-async def hello(m: Message):
-    await m.answer('И тебе привет! Внизу есть клавиатура, выбирай нужный пункт меню')
-
-
-async def download_photo(m: Message):
-    await m.answer(m.photo[-1].file_id)
-
-
 def register_user_handlers():
-    dp.message.register(start, CommandStart())
-    dp.callback_query.register(show_product)
-    dp.message.register(begin, F.text == 'Перейти в начало')
-    dp.message.register(catalog_all, F.text == 'В наличии')
-    dp.message.register(catalog_phones, F.text == 'Смартфоны')
-    dp.message.register(redmi_phones, F.text == 'Xiaomi / Redmi / Poco')
-    dp.message.register(realme_phones, F.text == "Realme / Oppo / OnePlus")
-    dp.message.register(samsung_phones, F.text == "Samsung")
-    dp.message.register(tecno_phones, F.text == "Tecno / Infinix")
-    dp.message.register(tcl_phones, F.text == "TCL")
-    dp.message.register(catalog_media_pad, F.text == "Планшеты")
-    dp.message.register(catalog_old_key_phones, F.text == "Кнопочные телефоны")
-    dp.message.register(smart_watches, F.text == "Умные часы")
-    dp.message.register(smart_goods, F.text == "Полный список смартфонов")
-    dp.message.register(items_order, F.text == "Под заказ")
-    dp.message.register(hello, F.text == "Привет")
-    dp.message.register(display_order_list, F.text.contains(' под заказ'))
-    dp.message.register(download_photo, F
+    user_.message.register(start, CommandStart())
+    user_.callback_query.register(show_product)
+    user_.message.register(begin, F.text == 'Перейти в начало')
+    user_.message.register(catalog_all, F.text == 'В наличии')
+    user_.message.register(catalog_phones, F.text == 'Смартфоны')
+    user_.message.register(redmi_phones, F.text == 'Xiaomi / Redmi / Poco')
+    user_.message.register(realme_phones, F.text == "Realme / Oppo / OnePlus")
+    user_.message.register(honor_phones, F.text == "Huawei / Honor")
+    user_.message.register(samsung_phones, F.text == "Samsung")
+    user_.message.register(tecno_phones, F.text == "Tecno / Infinix")
+    user_.message.register(tcl_phones, F.text == "TCL")
+    user_.message.register(catalog_media_pad, F.text == "Планшеты")
+    user_.message.register(catalog_old_key_phones, F.text == "Кнопочные телефоны")
+    user_.message.register(smart_watches, F.text == "Умные часы")
+    user_.message.register(powerbanks, F.text == "Power Banks")
+    user_.message.register(smart_goods, F.text == "Полный список смартфонов")
+    user_.message.register(items_order, F.text == "Под заказ")
+    user_.message.register(hello, F.text.lower() == "привет")
+    user_.message.register(display_order_list, F.text.contains(' под заказ'))
+    user_.message.register(services, F.text == 'Услуги')
+    user_.message.register(smartphone_repair, F.text == 'Ремонт смартфонов')
+    user_.message.register(battery, F.text == 'Замена батареи')
+    user_.message.register(display, F.text == 'Замена дисплея')
+    user_.message.register(xerox, F.text == 'Ксерокопия, печать, сканирование')
+    user_.message.register(chat_bot, F.text == 'Проектирование чат-ботов')
+    user_.message.register(echo, F.text)
