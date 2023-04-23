@@ -1,6 +1,7 @@
 import json
 import string
 import time
+from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart
@@ -24,6 +25,7 @@ from keyboards.user import user_first_kb, \
     catalog_order_kb, powerbanks_kb, services_kb, smartphone_repair_kb, battery_kb, display_kb, honor_inline_kb
 
 from config import hidden_vars
+from testfunc import newest_price
 
 user_ = Router()
 
@@ -165,23 +167,29 @@ async def chat_bot(m: Message):
 
 async def display_order_list(m: Message):
     spreadsheet = str()
-    if m.text == 'Xiaomi под заказ':
-        spreadsheet = 'optmobex_xiaomi'
-    elif m.text == 'Samsung под заказ':
-        spreadsheet = 'optmobex_samsung'
-    elif m.text == 'Apple под заказ':
-        spreadsheet = 'optmobex_apple'
-    update_text = f'Цены обновлены {get_date_from_db(spreadsheet)}\nи будут актуальны 1-3 дня'
-    result = show_distributor_offer(spreadsheet)
-    mess = update_text + '\n\n↓ ↓ ↓ ↓ \n' + \
-           title_formatting(spreadsheet, ''.join(item[0] + ' ' + str(item[1]) + '\n' for item in result))
-    if len(mess) > 4096:
-        for i in range(0, len(mess), 4096):
-            part_mess = mess[i: i + 4096]
-            await m.answer(part_mess)
-            time.sleep(1)
-    else:
-        await m.answer(mess)
+    if m.text == 'Xiaomi под заказ' or m.text == 'Samsung под заказ':
+        if m.text == 'Xiaomi под заказ':
+            spreadsheet = 'optmobex_xiaomi'
+        if m.text == 'Samsung под заказ':
+            spreadsheet = 'optmobex_samsung'
+        update_text = f'Цены обновлены {get_date_from_db(spreadsheet)}\nи будут актуальны 1-3 дня'
+        result = show_distributor_offer(spreadsheet)
+        mess = update_text + '\n\n↓ ↓ ↓ ↓ \n' + \
+               title_formatting(spreadsheet, ''.join(item[0] + ' ' + str(item[1]) + '\n' for item in result))
+        if len(mess) > 4096:
+            for i in range(0, len(mess), 4096):
+                part_mess = mess[i: i + 4096]
+                await m.answer(part_mess)
+                time.sleep(1)
+        else:
+            await m.answer(mess)
+    if m.text == 'Apple под заказ':
+        apple_price = newest_price()
+        date_ = apple_price[0][0].split('T')[0]
+        time_ = apple_price[0][0].split('T')[1]
+        date_text = f'Цены обновлены {date_} в {time_}\nи будут актуальны 1-3 дня\n\n↓ ↓ ↓ ↓ \n'
+
+
     await m.answer('ВНИМАНИЕ, смотрите на дату обновления цен в начале сообщения\n'
                    'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
 

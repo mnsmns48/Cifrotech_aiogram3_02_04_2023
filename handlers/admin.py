@@ -88,7 +88,6 @@ async def price_download_3(call: CallbackQuery, state: FSMContext):
 
 
 async def price_download_4(call: CallbackQuery, state: FSMContext):
-
     state_data = await state.get_data()
     price_ = state_data.get('price')
     separator_ = state_data.get('choose_separator')

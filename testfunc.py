@@ -1,45 +1,33 @@
-from openpyxl.workbook import Workbook
+from datetime import datetime
 
-from config import hidden_vars
-from core_func import _profit
-from core_vars import y, sqlite_connection
-from distrib_mail_parsing import check_data_in_distributor
-
-with open('zz_ttt.txt', encoding='utf-8') as f:
-    read_result = f.read()
+from core_func import date_out
+from core_vars import sqlite_connection
 
 
-def pars_price_from_mes(price: str, separator: str, table: str, date: str) -> None:
-    interval_result_list_ = list()
-    interval_result_list = list()
-    if separator == 'separator_dash':
-        for line in price.split('\n'):
-            if '-' in line and 'дней' not in line:
-                interval_result_list_.append(line.split('-'))
-    if separator == 'separator_space':
-        for line in price.split('\n'):
-            interval_result_list_.append(line.split(' '))
-    for i in interval_result_list_:
-        interval_result_list.append([' '.join(i[:-1]), i[-1]])
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Лист1"
-    ws.append(['Наименование', 'Цена', 'Заказ'])
-    for item in interval_result_list:
-        ws.append([item[0].strip(), int(item[1])])
-    filename = table + '_' + date[:10] + '.xlsx'
-    wb.save(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}')
-    y.upload(f'shippers/{hidden_vars.mail_connect.mail_path}/{filename}', f'/shippers/Mobex/{filename}',
-             overwrite=True)
+def newest_price():
     sqlite_cur = sqlite_connection.cursor()
-    for item in interval_result_list:
-        sqlite_cur.execute(f"INSERT INTO {table} VALUES "
-                           f"('{date}', "
-                           f"'{item[0]}', "
-                           f"'{item[1]}', "
-                           f"'{_profit(int(item[1]))}')")
-    sqlite_connection.commit()
-    print('Запись:', table, date[:10], 'завершена')
+    sqlite_cur.execute(
+        f"SELECT NT.DATE, NT.PRODUCT, NT.OUT_COST FROM ("
 
+        f"SELECT ta.DATE, ta.PRODUCT, ta.OUT_COST FROM terra_apple ta "
+        f"WHERE ta.DATE = (SELECT MAX(ta.DATE) FROM terra_apple ta) "
+        f"UNION "
 
-pars_price_from_mes(read_result, 'separator_space', 'terra_apple', '2023-04-22T23:17')
+        f"SELECT oa.DATE, oa.PRODUCT, oa.OUT_COST FROM optmobex_apple oa "
+        f"WHERE oa.DATE = (SELECT MAX(oa.DATE) FROM optmobex_apple oa) "
+        f"UNION "
+
+        f"SELECT ra.DATE, ra.PRODUCT, ra.OUT_COST FROM r_apple ra "
+        f"WHERE ra.DATE = (SELECT MAX(ra.DATE) FROM r_apple ra) "
+        f") NT "
+
+        f"ORDER BY NT.DATE DESC, NT.OUT_COST"
+    )
+    result = sqlite_cur.fetchall()
+    return result
+
+k = []
+apple_price = newest_price()
+for i in apple_price:
+    if i[0] == apple_price[0][0]:
+        k.append(i)

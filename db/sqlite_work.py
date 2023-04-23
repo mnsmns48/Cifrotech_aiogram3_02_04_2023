@@ -85,3 +85,4 @@ def choose_table():
     sqlite_cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
     result = sqlite_cur.fetchall()
     return result
+
