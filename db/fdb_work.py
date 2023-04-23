@@ -1,5 +1,4 @@
 import fdb
-
 from config import hidden_vars
 
 fdb_connection = fdb.connect(dsn=hidden_vars.db.dsn, user=hidden_vars.db.user, password=hidden_vars.db.password)
@@ -26,14 +25,11 @@ def goods_list(*args):
         f"WHERE dg.CODE = drt.GOOD AND dg.PARENT BETWEEN {args[0]} AND {args[1]} "
         f"UNION ALL "
         f"SELECT dg.CODE, dg.NAME, -det.QUANTITY, dg.PRICE_ "
-        f"FROM DIR_GOODS dg, DOC_EXPRESSION_TABLE det "
+        f"FROM DIR_GOODS dg, DOC_EXPSESSION_TABLE det "
         f"WHERE dg.CODE = det.GOOD AND dg.PARENT BETWEEN {args[0]} AND {args[1]}) SQ "
         f"GROUP BY SQ.CODE, SQ.NAME, SQ.PRICE_ "
         f"HAVING SUM(SQ.QUANTITY) >= 1 "
-        f"ORDER BY SQ.PRICE_"
-
-    )
-
+        f"ORDER BY SQ.PRICE_")
     return cur.fetchall()
 
 

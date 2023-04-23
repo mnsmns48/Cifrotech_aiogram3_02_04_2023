@@ -1,5 +1,3 @@
-from typing import List, Union, Dict
-
 import pytz
 from datetime import datetime
 

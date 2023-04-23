@@ -1,9 +1,11 @@
-from datetime import datetime
-
-from core_func import date_out
+# from datetime import datetime
+#
+# from core_func import date_out
 from core_vars import sqlite_connection
 
 
+#
+#
 def newest_price():
     sqlite_cur = sqlite_connection.cursor()
     sqlite_cur.execute(
@@ -25,9 +27,10 @@ def newest_price():
     )
     result = sqlite_cur.fetchall()
     return result
-
-k = []
-apple_price = newest_price()
-for i in apple_price:
-    if i[0] == apple_price[0][0]:
-        k.append(i)
+#
+#
+# result = []
+# apple_price = newest_price()
+# for i in apple_price:
+#     if i[0] == apple_price[0][0]:
+#         result.append([i[1], i[2]])

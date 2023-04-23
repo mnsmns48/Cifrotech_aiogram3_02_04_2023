@@ -1,7 +1,7 @@
 import json
 import string
 import time
-from datetime import datetime
+
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart
@@ -184,18 +184,29 @@ async def display_order_list(m: Message):
         else:
             await m.answer(mess)
     if m.text == 'Apple под заказ':
+        mess_list = list()
         apple_price = newest_price()
         date_ = apple_price[0][0].split('T')[0]
         time_ = apple_price[0][0].split('T')[1]
         date_text = f'Цены обновлены {date_} в {time_}\nи будут актуальны 1-3 дня\n\n↓ ↓ ↓ ↓ \n'
-
-
+        for i in apple_price:
+            if i[0] == apple_price[0][0]:
+                mess_list.append([i[1], i[2]])
+        text = date_text + ''.join(item[0] + ' ' + str(item[1]) + '\n' for item in mess_list)
+        if len(text) > 4096:
+            for i in range(0, len(text), 4096):
+                part_mess = text[i: i + 4096]
+                await m.answer(part_mess)
+                time.sleep(1)
+        else:
+            await m.answer(text)
     await m.answer('ВНИМАНИЕ, смотрите на дату обновления цен в начале сообщения\n'
                    'По любым вопросам обращайтесь\n@tser88 или @cifrotech_mobile')
 
 
 async def hello(m: Message):
-    await m.answer('И тебе привет! Внизу есть клавиатура, выбирай нужный пункт меню')
+    await m.answer('И тебе привет! Внизу есть клавиатура, выбирай нужный пункт меню\n'
+                   'Если не видишь клавиатуры - \nжми /start')
 
 
 async def echo(m: Message):
@@ -204,7 +215,8 @@ async def echo(m: Message):
         await m.reply('Некрасиво выражаешься')
         await m.delete()
     else:
-        await m.answer('Всё ясно! Пользуйся всплывающей клавиатурой')
+        await m.answer('Всё ясно! Пользуйся всплывающей клавиатурой\n'
+                       'Если не видишь клавиатуры - \nжми /start')
 
 
 def register_user_handlers():
